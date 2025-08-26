@@ -66,10 +66,50 @@ app.get('/user/:id', (req, res) => {
 //======= Route second =======
 
 //======= Route third ========
+// 3. Search expense
+app.get('/expenses/search/:user_id/:item', (req, res) => {
+    const user_id = req.params.user_id;
+    const item = req.params.item;
+    const sql = "SELECT item, paid, date FROM expense WHERE user_id = ? AND item LIKE ?";
+    con.query(sql, [user_id, `%${item}%`], function(err, results) {
+        if (err) {
+            return res.status(500).send("Database server error");
+        }
+        res.json(results);
+    });
+});
 
 //======= Route fourth =======
-
+// 4. Add new expense
+app.post('/expenses', (req, res) => {
+    const {
+        user_id,
+        item,
+        paid
+    } = req.body;
+    const sql = "INSERT INTO expense (user_id, item, paid, date) VALUES (?, ?, ?, NOW())";
+    con.query(sql, [user_id, item, paid], function(err, result) {
+        if (err) {
+            return res.status(500).send("Database server error");
+        }
+        res.send("Add expense success");
+    });
+});
 //======= Route fifth =======
+// 5. Delete an expense
+app.delete('/expenses/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = "DELETE FROM expense WHERE id = ?";
+    con.query(sql, [id], function(err, result) {
+        if (err) {
+            return res.status(500).send("Database server error");
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).send("Expense not found");
+        }
+        res.send("Delete expense success");
+    });
+});
 
 
 //================ Show PORT =========================
